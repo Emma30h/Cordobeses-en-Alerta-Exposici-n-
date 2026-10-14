@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cordobeses en Alerta · Dirección Monitoreo</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -397,6 +399,25 @@ body.doc{overflow:auto;font-size:15px}
 .doc .gcard .from{font-size:26px}
 .doc .scroll-hint{display:block}
 .scroll-hint{display:none;font-family:var(--f-mono);font-size:12px;color:var(--faint)}
+/* ---------- modo diapositivas en celular ---------- */
+body.mdeck{overflow:hidden}
+.mdeck .viewport{position:fixed;inset:0;overflow:hidden;display:block}
+.mdeck .stage{position:relative!important;left:0!important;top:0!important;width:100%!important;height:100%!important;transform:none!important}
+.mdeck .slide{position:absolute;inset:0;width:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  opacity:0;visibility:hidden;border-bottom:0;padding-bottom:84px;touch-action:pan-y}
+.mdeck .slide.on{opacity:1;visibility:visible}
+.mdeck .slide>*{flex:none!important;min-height:auto}
+.mdeck .slide .mapbox{flex:none}
+.mdeck .cover{min-height:0}
+.mdeck .cover .inner{min-height:100%}
+.mdeck .hud{display:flex;left:50%;right:auto;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom,0px));background:rgba(10,18,25,.85);padding:6px;border:1px solid var(--line);border-radius:10px}
+.mdeck .hud button{height:40px;min-width:44px}
+.mdeck #fs{display:none}
+.mdeck .progress{display:block}
+.mdeck .swipe-hint{display:block}
+.swipe-hint{display:none;position:fixed;left:0;right:0;bottom:max(70px,calc(env(safe-area-inset-bottom,0px) + 70px));text-align:center;font-family:var(--f-mono);font-size:12px;color:var(--muted);z-index:5;pointer-events:none;transition:opacity .6s}
+body.swiped .swipe-hint,body.not-first .swipe-hint{opacity:0}
+.swipe-hint span{background:rgba(10,18,25,.85);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 @media (prefers-reduced-motion:reduce){.slide,[data-f],.progress{transition:none}}
 </style>
 
@@ -756,6 +777,7 @@ body.doc{overflow:auto;font-size:15px}
   <button id="fs" aria-label="Pantalla completa">⛶</button>
 </div>
 <div class="tip" id="tip"></div>
+<div class="swipe-hint" id="swipeHint"><span>Deslizá hacia los costados para cambiar de lámina</span></div>
 
 <script>
 (function(){
@@ -767,21 +789,25 @@ const isDoc=()=>innerWidth<820 || innerHeight<480 || innerHeight>innerWidth*1.05
 function layout(){
   const doc=isDoc();
   document.body.classList.toggle('doc',doc);
-  document.body.classList.toggle('deck',!doc);
+  document.body.classList.toggle('mdeck',doc);
+  document.body.classList.add('deck');
   if(!doc){
     const s=Math.min(innerWidth/1600, innerHeight/900);
     stage.style.transform='translate(-50%,-50%) scale('+s+')';
   }
 }
-function frags(i){return [...new Set([...slides[i].querySelectorAll('[data-f]')].map(e=>+e.dataset.f))].sort((a,b)=>a-b)}
+function frags(i){if(document.body.classList.contains('mdeck'))return [];return [...new Set([...slides[i].querySelectorAll('[data-f]')].map(e=>+e.dataset.f))].sort((a,b)=>a-b)}
 function applyFrags(){
   const s=slides[cur];
-  s.querySelectorAll('[data-f]').forEach(e=>e.classList.toggle('dim', +e.dataset.f>frag));
+  const mob=document.body.classList.contains('mdeck');
+  s.querySelectorAll('[data-f]').forEach(e=>e.classList.toggle('dim', !mob && +e.dataset.f>frag));
 }
 function show(i,f){
   cur=Math.max(0,Math.min(N-1,i));
   slides.forEach((s,k)=>s.classList.toggle('on',k===cur));
-  if(document.body.classList.contains('deck')) play(slides[cur]);
+  slides[cur].scrollTop=0;
+  document.body.classList.toggle('not-first',cur>0);
+  play(slides[cur]);
   const fs=frags(cur);
   frag = f==='end' ? (fs.length?fs[fs.length-1]:0) : (fs.length?fs[0]:0);
   applyFrags();
@@ -815,7 +841,6 @@ function play(s){
 function next(){const fs=frags(cur); const nx=fs.find(x=>x>frag); if(nx!==undefined){frag=nx;applyFrags()} else if(cur<N-1) show(cur+1)}
 function prev(){const fs=frags(cur); const pv=[...fs].reverse().find(x=>x<frag); if(pv!==undefined){frag=pv;applyFrags()} else if(cur>0) show(cur-1,'end')}
 addEventListener('keydown',e=>{
-  if(document.body.classList.contains('doc'))return;
   if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();next()}
   else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();prev()}
   else if(e.key==='Home'){show(0)} else if(e.key==='End'){show(N-1)}
@@ -827,7 +852,14 @@ function toggleFS(){
 document.getElementById('next').onclick=next;
 document.getElementById('prev').onclick=prev;
 document.getElementById('fs').onclick=toggleFS;
-addEventListener('resize',layout);
+addEventListener('resize',()=>{layout();applyFrags()});
+/* deslizar en pantallas táctiles */
+let tx=0,ty=0,tt=0,skip=false;
+addEventListener('touchstart',e=>{const p=e.touches[0];tx=p.clientX;ty=p.clientY;tt=Date.now();skip=!!e.target.closest('.chart-scroll, .zbtn, .map, .hud');wake()},{passive:true});
+addEventListener('touchend',e=>{ if(skip||!document.body.classList.contains('mdeck'))return;
+  const p=e.changedTouches[0],dx=p.clientX-tx,dy=p.clientY-ty;
+  if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.4 && Date.now()-tt<800){ document.body.classList.add('swiped'); dx<0?next():prev(); }
+},{passive:true});
 let idleT;function wake(){document.body.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.add('idle'),2500)}
 addEventListener('mousemove',wake);wake();
 layout();
