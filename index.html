@@ -40,7 +40,7 @@ p{margin:0}
 
 /* ---------- escenario ---------- */
 .viewport{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden}
-.stage{width:1600px;height:900px;position:relative;transform-origin:center center;flex:none}
+.stage{width:1600px;height:900px;position:absolute;left:50%;top:50%;transform-origin:center center;transform:translate(-50%,-50%)}
 .slide{position:absolute;inset:0;padding:72px 88px 80px;display:flex;flex-direction:column;gap:28px;
   opacity:0;visibility:hidden;transition:opacity .45s ease, visibility .45s;overflow:hidden}
 .slide.on{opacity:1;visibility:visible}
@@ -303,7 +303,7 @@ body.idle .hud,body.idle .hint{opacity:0}
 @keyframes kb{from{transform:scale(1.001)}to{transform:scale(1.08)}}
 @keyframes draw{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
 @keyframes ring{0%{box-shadow:0 0 0 0 rgba(66,173,232,.55)}100%{box-shadow:0 0 0 22px rgba(66,173,232,0)}}
-.doc .resp{grid-template-columns:1fr}
+.doc .resp{grid-template-columns:minmax(0,1fr)}
 .doc .kpi2 .v{font-size:96px}
 .deck .slide.play [data-a]{animation:rise .75s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0) * 85ms + 120ms)}
 .deck .slide.play .gb{animation:grow .9s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--k,0) * 45ms + 450ms)}
@@ -330,7 +330,8 @@ body.idle .hud,body.idle .hint{opacity:0}
 /* ---------- modo documento (pantallas angostas / vertical) ---------- */
 body.doc{overflow:auto;font-size:15px}
 .doc .viewport{position:static;display:block}
-.doc .stage{width:auto;height:auto;transform:none!important}
+.doc .stage{width:100%!important;max-width:100%;height:auto;position:static;transform:none!important}
+.doc .slide{width:100%;max-width:100%}
 .doc .slide{position:relative;opacity:1;visibility:visible;inset:auto;padding:48px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);overflow:visible;gap:20px}
 .doc .foot{position:static;margin-top:8px;flex-wrap:wrap;gap:8px}
 .doc .slide h2{font-size:clamp(30px,8vw,46px)}
@@ -340,7 +341,8 @@ body.doc{overflow:auto;font-size:15px}
 .doc .cover h1{font-size:clamp(44px,13vw,80px)}
 .doc .cover .sub{font-size:20px}
 .doc .cover .meta{flex-wrap:wrap;gap:12px;font-size:12px}
-.doc .figs,.doc .channels,.doc .org-wrap,.doc .org-row,.doc .terr,.doc .room,.doc .ctrl,.doc .base,.doc .week,.doc .res,.doc .team,.doc .growth{grid-template-columns:1fr}
+.doc .figs,.doc .channels,.doc .org-wrap,.doc .org-row,.doc .terr,.doc .room,.doc .ctrl,.doc .base,.doc .week,.doc .res,.doc .team,.doc .growth{grid-template-columns:minmax(0,1fr)}
+.doc .slide .col,.doc .resp>*,.doc .week>*,.doc .res>*,.doc .team>*{min-width:0}
 .doc .fig{border-left:0;border-top:1px solid var(--line);padding:22px 0}
 .doc .fig .v,.doc .fig:first-child .v{font-size:64px}
 .doc .zones{grid-template-columns:1fr 1fr}
@@ -366,7 +368,35 @@ body.doc{overflow:auto;font-size:15px}
 .doc .hud,.doc .progress,.doc .hint{display:none}
 .doc .hero .v{font-size:64px}
 .doc .hero{flex-wrap:wrap}
-.doc .chart-scroll{overflow-x:auto}
+.doc .chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-inline:-4px;padding-bottom:6px}
+.doc .chart-scroll svg{min-width:640px}
+.doc .chart-scroll #chHeat{min-width:720px}
+.doc .chart-title{flex-wrap:wrap;gap:4px 12px;font-size:22px}
+.doc .channel{grid-template-columns:1fr;gap:8px}
+.doc .channel .tag{justify-self:start}
+.doc .channel p{font-size:17px}
+.doc .sub2{grid-template-columns:1fr}
+.doc .hb{grid-template-columns:130px 1fr 34px;font-size:14px}
+.doc .hb b{font-size:18px}
+.doc .kpi2 .u{font-size:30px}
+.doc .kpi2 p{font-size:16px}
+.doc .fstep .v{font-size:40px}
+.doc .seized .v{font-size:40px}
+.doc .stat .v{font-size:80px}
+.doc .shifts{font-size:17px}
+.doc .shifts td:first-child{font-size:24px}
+.doc .note{font-size:15.5px}
+.doc .rolecard p,.doc .point p,.doc .team p,.doc .pipe .card p,.doc .systems p{font-size:16px}
+.doc .pipe .card{min-height:0}
+.doc .pipe .card h3{font-size:28px}
+.doc .node .t{font-size:24px}
+.doc .node .what{font-size:16px}
+.doc .zbtn .zv{font-size:32px}
+.doc .ladder .v{font-size:30px}
+.doc .gcard .to{font-size:40px}
+.doc .gcard .from{font-size:26px}
+.doc .scroll-hint{display:block}
+.scroll-hint{display:none;font-family:var(--f-mono);font-size:12px;color:var(--faint)}
 @media (prefers-reduced-motion:reduce){.slide,[data-f],.progress{transition:none}}
 </style>
 
@@ -538,7 +568,7 @@ body.doc{overflow:auto;font-size:15px}
     <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
       <div>
         <div class="chart-title">Grupos de WhatsApp por distrito <span class="num">1.123 en total</span></div>
-        <div class="chart-scroll"><svg class="svgchart" id="chGroups" viewBox="0 0 760 250" role="img" aria-label="Grupos de WhatsApp por distrito"></svg></div>
+        <div class="chart-scroll"><svg class="svgchart" id="chGroups" viewBox="0 0 760 250" role="img" aria-label="Grupos de WhatsApp por distrito"></svg></div><span class="scroll-hint">← deslizá el gráfico →</span>
       </div>
       <div class="chain">
         <div><i>↳</i><span>Una alerta llega desde <b>fuera de los cuadrantes</b>: el operador de cabina igual abre la carta.</span></div>
@@ -596,7 +626,7 @@ body.doc{overflow:auto;font-size:15px}
     <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
       <div class="chart-title">Alertas por mes <span>promedio diario sobre cada barra</span></div>
       <div class="legend"><span><i style="background:var(--brand)"></i>Alertas del mes</span><span><i style="background:var(--signal)"></i>Con los 90 barrios sumados el 22 de julio</span></div>
-      <div class="chart-scroll"><svg class="svgchart" id="chYear" viewBox="0 0 900 400" role="img" aria-label="Alertas por mes, octubre 2025 a septiembre 2026"></svg></div>
+      <div class="chart-scroll"><svg class="svgchart" id="chYear" viewBox="0 0 900 400" role="img" aria-label="Alertas por mes, octubre 2025 a septiembre 2026"></svg></div><span class="scroll-hint">← deslizá el gráfico →</span>
       <p class="note">Septiembre de 2026 fue el mes con más alertas (9.849) y con más positivos (352). Los positivos crecieron junto con la cobertura.</p>
     </div>
   </div>
@@ -617,7 +647,7 @@ body.doc{overflow:auto;font-size:15px}
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
       <div class="chart-title">¿Cuándo llegan las alertas? <span>día y hora, 12 meses</span></div>
-      <div class="chart-scroll"><svg class="svgchart" id="chHeat" viewBox="0 0 900 330" role="img" aria-label="Alertas por día de la semana y hora"></svg></div>
+      <div class="chart-scroll"><svg class="svgchart" id="chHeat" viewBox="0 0 900 330" role="img" aria-label="Alertas por día de la semana y hora"></svg></div><span class="scroll-hint">← deslizá el gráfico →</span>
       <div class="legend" id="heatLegend"></div>
       <p class="note">La demanda crece desde la tarde y llega a su pico a las 21 h. De 18 a 0 h entra el 37% de las alertas, y sábado y domingo son los días más cargados.</p>
     </div>
@@ -635,7 +665,7 @@ body.doc{overflow:auto;font-size:15px}
     <div class="col">
       <div class="hero"><span class="v num">−16,9%</span><span class="k"><b>hechos prevenibles</b> en barrios del programa, enero a septiembre de 2026 contra 2025 (15.381 → 12.789)</span></div>
       <div class="legend"><span><i style="background:var(--y25)"></i>2025</span><span><i style="background:var(--brand)"></i>2026</span></div>
-      <div class="chart-scroll"><svg class="svgchart" id="chPrev" viewBox="0 0 860 330" role="img" aria-label="Hechos prevenibles por mes, 2025 contra 2026"></svg></div>
+      <div class="chart-scroll"><svg class="svgchart" id="chPrev" viewBox="0 0 860 330" role="img" aria-label="Hechos prevenibles por mes, 2025 contra 2026"></svg></div><span class="scroll-hint">← deslizá el gráfico →</span>
       <p class="src">Fuente: SEDEPO Lite · 17 DJP con barrios del programa · la baja se registró en los 9 meses</p>
     </div>
     <div class="col">
@@ -733,14 +763,14 @@ const stage=document.getElementById('stage');
 const slides=[...document.querySelectorAll('.slide')];
 const N=slides.length;
 let cur=0, frag=0;
-const isDoc=()=>innerWidth<820 || innerHeight>innerWidth*1.05;
+const isDoc=()=>innerWidth<820 || innerHeight<480 || innerHeight>innerWidth*1.05;
 function layout(){
   const doc=isDoc();
   document.body.classList.toggle('doc',doc);
   document.body.classList.toggle('deck',!doc);
   if(!doc){
     const s=Math.min(innerWidth/1600, innerHeight/900);
-    stage.style.transform='scale('+s+')';
+    stage.style.transform='translate(-50%,-50%) scale('+s+')';
   }
 }
 function frags(i){return [...new Set([...slides[i].querySelectorAll('[data-f]')].map(e=>+e.dataset.f))].sort((a,b)=>a-b)}
