@@ -1,6 +1,6 @@
 // Configuración de la guía en vivo (datos públicos: no contiene secretos)
 window.VIVO = {
-  SUPABASE_URL: "PEGAR_PROJECT_URL",
+  SUPABASE_URL: "https://mzxewusumcmgdujzbcdc.supabase.co",
   SUPABASE_KEY: "PEGAR_ANON_KEY",
   CANAL: "dmca-exposicion",
   // Clave pública: la guía solo acepta cambios de lámina firmados por el expositor
