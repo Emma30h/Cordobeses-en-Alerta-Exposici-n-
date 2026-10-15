@@ -979,7 +979,7 @@ const m=/^#s(\d+)$/.exec(location.hash||''); show(m?(+m[1]-1):0);
   const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   const store={get(){try{return localStorage.getItem('vivoClave')}catch(e){return null}},set(v){try{v?localStorage.setItem('vivoClave',v):localStorage.removeItem('vivoClave')}catch(e){}}};
   async function loadKey(b64){ const jwk=JSON.parse(atob(b64.trim())); return crypto.subtle.importKey('jwk',jwk,{name:'ECDSA',namedCurve:'P-256'},false,['sign']); }
-  const VER='2026-10-15d';
+  const VER='2026-10-15e';
   const slideId=s=>{const el=document.querySelectorAll('.slide')[s-1];return el?(el.dataset.id||''):''};
   async function send(s){ cur=s; if(!ready||!key)return; const t=Date.now(), id=slideId(s);
     const sig=b64u(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},key,new TextEncoder().encode(s+'|'+id+'|'+VER+'|'+t)));
